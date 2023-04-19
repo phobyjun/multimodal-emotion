@@ -26,7 +26,8 @@ def main():
 
     for mode in ['train', 'val']:
         # specifies location of the features within feature path
-        dpath_mode = os.path.join('features', args.feature, '{}_forward'.format(mode), '*.csv')
+        dpath_mode = os.path.join('features', args.feature, '{}_forward'.format(mode), '*.pkl')
+        print(dpath_mode)
 
         # specifies location of the graphs
         tpath_mode = os.path.join(tpath_key, mode)

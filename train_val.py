@@ -116,7 +116,9 @@ def train(model, train_loader, device, optimizer, criterion, scheduler):
         optimizer.zero_grad()
 
         output = model(data)
-
+        print(data.y)
+        print(output)
+        print("output size: {}\ndata.y size:{}".format(output.size(), data.y.size()))
         loss = criterion(output, data.y)
         loss.backward()
         loss_sum += loss.item()

@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import glob
+import pickle
 import numpy as np
 from tqdm import tqdm
 import torch
@@ -47,7 +48,7 @@ class AVADataset(Dataset):
         files = [os.path.splitext(os.path.basename(f))[0] for f in files]
         if self.cont == 1:
             files = sorted(os.listdir(self.processed_dir))
-
+        
         return files
 
     def _download(self):
@@ -92,9 +93,8 @@ class AVADataset(Dataset):
                 continue
 
             ## load the current feature csv file
-            with open(fl, newline='') as f:
-                reader = csv.reader(f)
-                data_f = list(reader)
+            with open(fl, 'rb') as f:
+                data_f = pickle.load(f)
 
             #------Note--------------------
             ## data_f contains the feature data of the current video
@@ -102,7 +102,19 @@ class AVADataset(Dataset):
             ## format of data_f: For any row=i, data_f[i][0]=video_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= facebox's label, data_f[i][-1]=facebox feature
             #------------
 
+            newData = []
+            for key in data_f.keys():
+                value = data_f[key][0]
+                data = []
+                data.append(fl.split('/')[-1].split('.')[0])
+                data.append(key)
+                data.append(value['person_id'])
+                data.append(value['label'])
+                data.append(value['feature'])
+                newData.append(data)
+                
             # we sort the rows by their time-stamps
+            data_f = newData
             data_f.sort(key = lambda x: float(x[1]))
 
             num_v = self.numv
@@ -160,11 +172,12 @@ class AVADataset(Dataset):
                     vte = (data_f[j][0], float(data_f[j][1]), data_f[j][2])
 
                     ## parse the current facebox's feature from data_f
-                    feat = self.decode_feature(data_f[j][-1])
+                    feat = data_f[j][-1]
 
                     # append feature vector to the list of facebox(or vertex) features
                     ## in additiona to the A-V feature, we can append additional information to the feature vector for later usage like time-stamp
                     tail = []
+                    
                     tail.extend(dict_vte_spe[vte])
                     tail.extend([id_dict[data_f[j][2]+str(ct)], vstamp_dict[stamp_marker]])
                     feat = np.append(feat, tail)
