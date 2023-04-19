@@ -1,0 +1,6 @@
+/csv_files/*
+/features/*
+/graphs/*
+/SLOWFAST-64x2-R101/*
+/results/*
+/__pycache__/*
