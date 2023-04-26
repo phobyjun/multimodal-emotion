@@ -172,7 +172,7 @@ class AVADataset(Dataset):
                     vte = (data_f[j][0], float(data_f[j][1]), data_f[j][2])
 
                     ## parse the current facebox's feature from data_f
-                    feat = data_f[j][-1]
+                    feat = data_f[j][-1][:512]
 
                     # append feature vector to the list of facebox(or vertex) features
                     ## in additiona to the A-V feature, we can append additional information to the feature vector for later usage like time-stamp
