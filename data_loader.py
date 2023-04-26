@@ -86,14 +86,13 @@ class AVADataset(Dataset):
             #------Note--------------------
             ## data_f contains the feature data of the current video
             ## the format is the following: Each row of data_f is a list itself and corresponds to a face-box
-            ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][-1]=facebox feature
-            ## ORIGINAL: format of data_f: For any row=i, data_f[i][0]=video_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= facebox's label, data_f[i][-1]=facebox feature
+            ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= label, data_f[i][-1]=feature
             #------------
 
             newData = []
             for key in data_f.keys():
-                # value의 형식은 name/timestamp/feature
-                # 즉, Sess01_script01_User002M_001/000000/[1024] 형식
+                # value의 형식은 name/timestamp/feature/label
+                # 즉, Sess01_script01_User002M_001/000000/[1024]/label 형식
                 value = data_f[key][0]
                 data = []
                 # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
@@ -101,6 +100,7 @@ class AVADataset(Dataset):
                 data.append(name[0])
                 data.append(value['timestamp'])
                 data.append(name[2])
+                data.append(value['label'])
                 data.append(value['feature'])
                 newData.append(data)
                 
@@ -130,8 +130,6 @@ class AVADataset(Dataset):
                 identity = []
                 times = []
 
-                unique_id = []
-
                 ##------------------------------
                 ## this block computes the index of the start facebox and the last
                 if i+num_v <= len_data:
@@ -160,10 +158,8 @@ class AVADataset(Dataset):
                         id_ct = id_ct + 1
                     #---------------------------------------------
 
-                    ## parse the current facebox's feature from data_f
+                    ## feature를 x에 저장
                     feat = data_f[j][-1]
-
-                    feat = np.expand_dims(feat, axis=0)
 
                     x.append(feat)
 
