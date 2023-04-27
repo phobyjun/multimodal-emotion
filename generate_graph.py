@@ -5,7 +5,7 @@ from data_loader import AVADataset
 parser = argparse.ArgumentParser(description='generate_graph')
 parser.add_argument('--feature', type=str, default='resnet18-tsm-aug', help='name of the features')
 parser.add_argument('--numv', type=int, default=2000, help='number of nodes')
-parser.add_argument('--time_edge', type=float, default=0.9, help='time threshold')
+parser.add_argument('--time_edge', type=float, default=7.2, help='time threshold')
 parser.add_argument('--cross_identity', type=str, default='cin', help='whether to allow cross-identity edges')
 parser.add_argument('--edge_weight', type=str, default='fsimy', help='how to decide edge weights')
 
