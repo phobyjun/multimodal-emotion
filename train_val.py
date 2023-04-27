@@ -7,14 +7,13 @@ from models_gnn import SPELL
 from data_loader import AVADataset
 from torch_geometric.loader import DataLoader
 from sklearn.metrics import average_precision_score
-from sklearn.metrics import f1_score
 
 
 parser = argparse.ArgumentParser(description='SPELL')
 parser.add_argument('--gpu_id', type=int, default=0, help='which gpu to run the train_val')
 parser.add_argument('--feature', type=str, default='resnet18-tsm-aug', help='name of the features')
 parser.add_argument('--numv', type=int, default=2000, help='number of nodes (n in our paper)')
-parser.add_argument('--time_edge', type=float, default=7.2, help='time threshold (tau in our paper)')
+parser.add_argument('--time_edge', type=float, default=0.9, help='time threshold (tau in our paper)')
 parser.add_argument('--cross_identity', type=str, default='cin', help='whether to allow cross-identity edges')
 parser.add_argument('--edge_weight', type=str, default='fsimy', help='how to decide edge weights')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate') # 5e-4 or 1e-3 works well
@@ -22,7 +21,7 @@ parser.add_argument('--sch_param', type=int, default=100, help='parameter for lr
 parser.add_argument('--channel1', type=int, default=64, help='filter dimension of GCN layers (layer1-2)')
 parser.add_argument('--channel2', type=int, default=16, help='filter dimension of GCN layers (layer2-3)')
 parser.add_argument('--proj_dim', type=int, default=64, help='projection of 4->proj_dim for spatial feature')
-parser.add_argument('--batch_size', type=int, default=16, help='batch size')# 16
+parser.add_argument('--batch_size', type=int, default=16, help='batch size')
 parser.add_argument('--dropout', type=float, default=0.2, help='dropout for SAGEConv') # 0.2 ~ 0.4
 parser.add_argument('--dropout_a', type=float, default=0, help='dropout value for dropout_adj')
 parser.add_argument('--da_true', action='store_true', help='always apply dropout_adj for both the training and testing')
@@ -47,11 +46,11 @@ def main():
     graph_data['edge_weight'] = args.edge_weight
 
     # path of the audio-visual features
-    dpath_root = os.path.join('/local_datasets/KEMDy20/', 'features')
+    dpath_root = os.path.join('/local_datasets/SPELL/features', '{}_features'.format(args.feature))
 
     # path of the generated graphs
     exp_key = '{}_{}_{}_{}_{}'.format(args.feature, graph_data['numv'], graph_data['time_edge'], graph_data['cross_identity'], graph_data['edge_weight'])
-    tpath_root = os.path.join('/local_datasets/KEMDy20/graphs', exp_key)
+    tpath_root = os.path.join('/local_datasets/SPELL/graphs', exp_key)
 
     # path for the results and model checkpoints
     exp_name = '{}_lr{}-{}_c{}-{}_d{}-{}_s{}'.format(exp_key, args.lr, args.sch_param, args.channel1, args.channel2, args.dropout, args.dropout_a, args.seed)
@@ -61,20 +60,20 @@ def main():
     result_path = os.path.join('results', exp_name)
     os.makedirs(result_path, exist_ok=True)
 
-    dpath_train = os.path.join(dpath_root, 'train_forward', '*.pkl')
-    tpath_train = os.path.join(tpath_root,'train')
-    dpath_val = os.path.join(dpath_root, 'val_forward', '*.pkl')
-    tpath_val = os.path.join(tpath_root,'train')
+    dpath_train = os.path.join(dpath_root, 'train_forward', '*.csv')
+    tpath_train = os.path.join(tpath_root, 'train')
+    dpath_val = os.path.join(dpath_root, 'val_forward', '*.csv')
+    tpath_val = os.path.join(tpath_root, 'val')
 
     cont = 1
     Fdataset_train = AVADataset(dpath_train, graph_data, cont, tpath_train, mode='train')
-    Fdataset_val = AVADataset(dpath_val, graph_data, cont, tpath_val, mode='train')
+    Fdataset_val = AVADataset(dpath_val, graph_data, cont, tpath_val, mode='val')
 
     train_loader = DataLoader(Fdataset_train, batch_size=args.batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(Fdataset_val, batch_size=1, shuffle=False, num_workers=4)
 
     # gpu and learning parameter settings
-    feature_dim = 1536
+    feature_dim = 1024
     if 'resnet50' in args.feature:
         feature_dim = 4096
 
@@ -83,8 +82,7 @@ def main():
     model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    criterion = torch.nn.CrossEntropyLoss()
-    #criterion = torch.nn.BCELoss()
+    criterion = torch.nn.BCELoss()
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.sch_param)
 
     flog = open(os.path.join(result_path, 'log.txt'), mode = 'w')
@@ -118,9 +116,6 @@ def train(model, train_loader, device, optimizer, criterion, scheduler):
         optimizer.zero_grad()
 
         output = model(data)
-        print(data.y.shape)
-        
-
         loss = criterion(output, data.y)
         loss.backward()
         loss_sum += loss.item()
@@ -154,12 +149,6 @@ def evaluation(model, val_loader, device, feature_dim):
     # it does not produce an official mAP score (but the difference is negligible)
     # we report the scores computed by an official evaluation script by ActivityNet in our paper
     mAP = average_precision_score(target_total, soft_total)
-    print("f1_score(label_lst, pred_lst, average = 'macro'): ",
-          f1_score(target_total, preds, average='macro'))
-    print("f1_score(label_lst, pred_lst, average = 'micro'): ",
-          f1_score(target_total, preds, average='micro'))
-    print("f1_score(label_lst, pred_lst, average = 'weighted'): ",
-          f1_score(target_total, preds, average='weighted'))
 
     return mAP
 

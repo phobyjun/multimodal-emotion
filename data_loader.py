@@ -74,19 +74,6 @@ class AVADataset(Dataset):
         id_ct = 0
         ustamp = 0
 
-        dict_vte_spe = {}
-        with open('csv_files/ava_activespeaker_{}.csv'.format(self.mode)) as f:
-            reader = csv.reader(f)
-            data_gt = list(reader)
-
-        for video_id, frame_timestamp, x1, y1, x2, y2, label, entity_id in data_gt:
-            if video_id == 'video_id':
-                continue
-            vte = (video_id, float(frame_timestamp), entity_id)
-            x1, y1, x2, y2 = float(x1), float(y1), float(x2), float(y2)
-            if vte not in dict_vte_spe:
-                dict_vte_spe[vte] = [(x1+x2)/2, (y1+y2)/2, x2-x1, y2-y1]
-
         ## iterating over videos(features) in training/validation set
         for ct, fl in enumerate(files):
             if self.cont == 1:
@@ -99,20 +86,28 @@ class AVADataset(Dataset):
             #------Note--------------------
             ## data_f contains the feature data of the current video
             ## the format is the following: Each row of data_f is a list itself and corresponds to a face-box
-            ## format of data_f: For any row=i, data_f[i][0]=video_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= facebox's label, data_f[i][-1]=facebox feature
+            ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= label, data_f[i][-1]=feature
             #------------
 
             newData = []
             for key in data_f.keys():
-                value = data_f[key][0]
-                data = []
-                data.append(fl.split('/')[-1].split('.')[0])
-                data.append(key)
-                data.append(value['person_id'])
-                data.append(value['label'])
-                data.append(value['feature'])
-                newData.append(data)
+                # value의 형식은 {name: [{timestamp: 0000, feature: [1024], label: [10]}, {timestamp: 0001, ...}], ...}
+                values = data_f[key]
+                name = key.split('_')
                 
+                for value in values:
+                    data = []
+                    # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
+                    ts = value['ts'].split('-')[-3:]
+                    seconds = float(ts[0])//100*3600 + float(ts[0]) % 100 * 60 + float(ts[1]) + float(ts[2])*0.001
+                    
+                    data.append(name[0])
+                    data.append(seconds)
+                    data.append(name[2])
+                    data.append(value['emotion'])
+                    data.append(value['feature'])
+                    newData.append(data)
+
             # we sort the rows by their time-stamps
             data_f = newData
             data_f.sort(key = lambda x: float(x[1]))
@@ -139,8 +134,6 @@ class AVADataset(Dataset):
                 identity = []
                 times = []
 
-                unique_id = []
-
                 ##------------------------------
                 ## this block computes the index of the start facebox and the last
                 if i+num_v <= len_data:
@@ -157,7 +150,7 @@ class AVADataset(Dataset):
                     #-----------------------------------------------
                     # optional
                     # note: often we might want to have global identity or
-                    stamp_marker = data_f[j][1] + data_f[j][0]
+                    stamp_marker = str(data_f[j][1]) + data_f[j][0]
                     id_marker = data_f[j][2] + str(ct)
 
                     if stamp_marker not in vstamp_dict:
@@ -169,24 +162,14 @@ class AVADataset(Dataset):
                         id_ct = id_ct + 1
                     #---------------------------------------------
 
-                    vte = (data_f[j][0], float(data_f[j][1]), data_f[j][2])
-
-                    ## parse the current facebox's feature from data_f
+                    ## feature를 x에 저장
                     feat = data_f[j][-1]
-
-                    # append feature vector to the list of facebox(or vertex) features
-                    ## in additiona to the A-V feature, we can append additional information to the feature vector for later usage like time-stamp
-                    tail = []
-                    
-                    tail.extend(dict_vte_spe[vte])
-                    tail.extend([id_dict[data_f[j][2]+str(ct)], vstamp_dict[stamp_marker]])
-                    feat = np.append(feat, tail)
                     feat = np.expand_dims(feat, axis=0)
 
                     x.append(feat)
 
                     #append i-th vertex label
-                    y.append(float(data_f[j][3]))
+                    y.append(data_f[j][3])
 
                     ## append time and identity of i-th vertex to the list of time stamps and identitites
                     times.append(float(data_f[j][1]))

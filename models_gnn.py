@@ -8,21 +8,17 @@ from torch_geometric.utils.dropout import dropout_adj
 class SPELL(torch.nn.Module):
     def __init__(self, channels, feature_dim=1024, dropout=0, dropout_a=0, da_true=False, proj_dim=64):
         self.channels = channels
-        self.feature_dim = feature_dim  #1536
+        self.feature_dim = feature_dim
         self.dropout = dropout
         self.dropout_a = dropout_a
         self.da_true = da_true
         super(SPELL, self).__init__()
 
         self.layerspf = nn.Linear(4, proj_dim) # projection layer for spatial features (4 -> 64)
-        # spatial feature는?
-        
-        #self.layer011 = nn.Linear(self.feature_dim//2+proj_dim, self.channels[0])
-        self.layer011 = nn.Linear(self.feature_dim//3, self.channels[0])
-        self.layer012 = nn.Linear(self.feature_dim//3, self.channels[0])
-        self.layer013 = nn.Linear(self.feature_dim//3, self.channels[0])
+        self.layer011 = nn.Linear(self.feature_dim//2+proj_dim, self.channels[0])
+        self.layer012 = nn.Linear(self.feature_dim//2, self.channels[0])
 
-        self.batch01 = BatchNorm(self.channels[0]) #64
+        self.batch01 = BatchNorm(self.channels[0])
 
         self.layer11 = EdgeConv(nn.Sequential(nn.Linear(2*self.channels[0], self.channels[0]), nn.ReLU(), nn.Linear(self.channels[0], self.channels[0])))
         self.batch11 = BatchNorm(self.channels[0])
@@ -34,31 +30,20 @@ class SPELL(torch.nn.Module):
         self.layer21 = SAGEConv(self.channels[0], self.channels[1])
         self.batch21 = BatchNorm(self.channels[1])
 
-        self.layer31 = SAGEConv(self.channels[1], 7)
-        self.layer32 = SAGEConv(self.channels[1], 7)
-        self.layer33 = SAGEConv(self.channels[1], 7)   #logit
+        self.layer31 = SAGEConv(self.channels[1], 1)
+        self.layer32 = SAGEConv(self.channels[1], 1)
+        self.layer33 = SAGEConv(self.channels[1], 1)
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
-        print(x.shape,edge_index.shape, edge_attr.shape)
-        #x = x.view(1,-1) ## 차원 맞추려고
 
-        #spf = x[:, self.feature_dim:self.feature_dim+4] # coordinates for the spatial features (dim: 4)
-        
+        spf = x[:, self.feature_dim:self.feature_dim+4] # coordinates for the spatial features (dim: 4)
         edge_index1 = edge_index[:, edge_attr>=0]
         edge_index2 = edge_index[:, edge_attr<=0]
 
-        #x_visual = self.layer011(torch.cat((x[:,self.feature_dim//2:self.feature_dim], self.layerspf(spf)), dim=1))
-        
-        x_audio = self.layer011(x[:,:self.feature_dim//3])
-        x_EDA = self.layer012(x[:,self.feature_dim//3:(self.feature_dim//3)*2])
-        
-        x_TEMP = self.layer013(x[:,(self.feature_dim//3)*2:self.feature_dim])
-        
-        
-        
-        x = x_EDA+ x_TEMP + x_audio
-    
+        x_visual = self.layer011(torch.cat((x[:,self.feature_dim//2:self.feature_dim], self.layerspf(spf)), dim=1))
+        x_audio = self.layer012(x[:,:self.feature_dim//2])
+        x = x_audio + x_visual
 
         x = self.batch01(x)
         x = F.relu(x)
@@ -72,6 +57,7 @@ class SPELL(torch.nn.Module):
         x1 = self.batch21(x1)
         x1 = F.relu(x1)
         x1 = F.dropout(x1, p=self.dropout, training=self.training)
+
         edge_index2m, _ = dropout_adj(edge_index=edge_index2, p=self.dropout_a, training=self.training if not self.da_true else True)
         x2 = self.layer12(x, edge_index2m)
         x2 = self.batch12(x2)
@@ -96,10 +82,8 @@ class SPELL(torch.nn.Module):
         x1 = self.layer31(x1, edge_index1)
         x2 = self.layer32(x2, edge_index2)
         x3 = self.layer33(x3, edge_index)
+
         x = x1 + x2 + x3
-        #x = torch.sigmoid(x)
-        x = torch.softmax(x,dim=1)
-        print(x)
-        print(x.shape)
+        x = torch.sigmoid(x)
 
         return x
