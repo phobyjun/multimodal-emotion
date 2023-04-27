@@ -89,24 +89,30 @@ class AVADataset(Dataset):
             ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= label, data_f[i][-1]=feature
             #------------
 
-            newData = []
+            newData = {}
             for key in data_f.keys():
                 # value의 형식은 {name: [{timestamp: 0000, feature: [1024], label: [10]}, {timestamp: 0001, ...}], ...}
                 values = data_f[key]
+                name = key.split('_')
 
+                if name[0] not in newData.keys():
+                    newData[name[0]] = []
+                
                 for value in values:
                     data = []
                     # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
-                    name = key.split('_')
+                    ts = value['ts'].split('-')[-3:]
+                    seconds = float(ts[0])//100*3600 + float(ts[0]) % 100 * 60 + float(ts[1]) + float(ts[2])*0.001
+                    
                     data.append(name[0])
-                    data.append(value['timestamp'])
+                    data.append(seconds)
                     data.append(name[2])
-                    data.append(value['label'])
+                    data.append(value['emotion'])
                     data.append(value['feature'])
-                    newData.append(data)
-                
+                    newData[name[0]].append(data)
+
             # we sort the rows by their time-stamps
-            data_f = newData
+            data_f = newData[sess]
             data_f.sort(key = lambda x: float(x[1]))
 
             num_v = self.numv
@@ -147,7 +153,7 @@ class AVADataset(Dataset):
                     #-----------------------------------------------
                     # optional
                     # note: often we might want to have global identity or
-                    stamp_marker = data_f[j][1] + data_f[j][0]
+                    stamp_marker = str(data_f[j][1]) + data_f[j][0]
                     id_marker = data_f[j][2] + str(ct)
 
                     if stamp_marker not in vstamp_dict:
@@ -165,7 +171,7 @@ class AVADataset(Dataset):
                     x.append(feat)
 
                     #append i-th vertex label
-                    y.append(float(data_f[j][3]))
+                    y.append(data_f[j][3])
 
                     ## append time and identity of i-th vertex to the list of time stamps and identitites
                     times.append(float(data_f[j][1]))
