@@ -22,7 +22,7 @@ def main():
     graph_data['edge_weight'] = args.edge_weight           ## fsimn vs fsimy as above
 
     # target path for storing graphs
-    tpath_key = os.path.join('/local_datasets/KEMDy20/graphs', '{}_{}_{}_{}_{}'.format(args.feature, graph_data['numv'], graph_data['time_edge'], graph_data['cross_identity'], graph_data['edge_weight']))
+    tpath_key = os.path.join('/local_datasets/KEMDy20/graphs-2', '{}_{}_{}_{}_{}'.format(args.feature, graph_data['numv'], graph_data['time_edge'], graph_data['cross_identity'], graph_data['edge_weight']))
 
     for mode in ['train', 'val']:
         # specifies location of the features within feature path
