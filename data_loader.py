@@ -89,14 +89,11 @@ class AVADataset(Dataset):
             ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= label, data_f[i][-1]=feature
             #------------
 
-            newData = {}
+            newData = []
             for key in data_f.keys():
                 # value의 형식은 {name: [{timestamp: 0000, feature: [1024], label: [10]}, {timestamp: 0001, ...}], ...}
                 values = data_f[key]
                 name = key.split('_')
-
-                if name[0] not in newData.keys():
-                    newData[name[0]] = []
                 
                 for value in values:
                     data = []
@@ -109,10 +106,10 @@ class AVADataset(Dataset):
                     data.append(name[2])
                     data.append(value['emotion'])
                     data.append(value['feature'])
-                    newData[name[0]].append(data)
+                    newData.append(data)
 
             # we sort the rows by their time-stamps
-            data_f = newData[sess]
+            data_f = newData
             data_f.sort(key = lambda x: float(x[1]))
 
             num_v = self.numv
