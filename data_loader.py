@@ -91,17 +91,19 @@ class AVADataset(Dataset):
 
             newData = []
             for key in data_f.keys():
-                # value의 형식은 {name: {timestamp: 0000, feature: [1024], label: [10]}, ...}
-                value = data_f[key]
-                data = []
-                # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
-                name = key.split('_')
-                data.append(name[0])
-                data.append(value['timestamp'])
-                data.append(name[2])
-                data.append(value['label'])
-                data.append(value['feature'])
-                newData.append(data)
+                # value의 형식은 {name: [{timestamp: 0000, feature: [1024], label: [10]}, {timestamp: 0001, ...}], ...}
+                values = data_f[key]
+
+                for value in values:
+                    data = []
+                    # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
+                    name = key.split('_')
+                    data.append(name[0])
+                    data.append(value['timestamp'])
+                    data.append(name[2])
+                    data.append(value['label'])
+                    data.append(value['feature'])
+                    newData.append(data)
                 
             # we sort the rows by their time-stamps
             data_f = newData
