@@ -167,6 +167,7 @@ class AVADataset(Dataset):
 
                     ## feature를 x에 저장
                     feat = data_f[j][-1]
+                    feat = np.expand_dims(feat, axis=0)
 
                     x.append(feat)
 
