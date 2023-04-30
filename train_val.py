@@ -47,11 +47,11 @@ def main():
     graph_data['edge_weight'] = args.edge_weight
 
     # path of the audio-visual features
-    dpath_root = os.path.join('/local_datasets/KEMDy20-2/', 'features')
+    dpath_root = os.path.join('features', '{}_features'.format(args.feature))
 
     # path of the generated graphs
     exp_key = '{}_{}_{}_{}_{}'.format(args.feature, graph_data['numv'], graph_data['time_edge'], graph_data['cross_identity'], graph_data['edge_weight'])
-    tpath_root = os.path.join('/local_datasets/KEMDy20-2/graphs', exp_key)
+    tpath_root = os.path.join('graphs', exp_key)
 
     # path for the results and model checkpoints
     exp_name = '{}_lr{}-{}_c{}-{}_d{}-{}_s{}'.format(exp_key, args.lr, args.sch_param, args.channel1, args.channel2, args.dropout, args.dropout_a, args.seed)
