@@ -15,22 +15,19 @@
 - Task는 다음과 같습니다.
     - 우리는 본 연구에서 일반인 대상 자유발화:[KEMDy20](https://nanum.etri.re.kr/share/kjnoh/KEMDy20?lang=ko_KR) 데이터셋을 활용하여 감정의 레이블(기쁨, 놀람, 분노, 중립, 혐오, 공포, 슬픔)에 대한 분류 정확도(F1)를 제시합니다.
     - 멀티모달 데이터를 혼합합니다. 발화음성과 EDA 데이터, 온도 데이터를 사용하여 멀티모달 데이터 감정인식 모델을 구축했습니다.
-    - 임베딩 벡터로 만들어진 graph를 GNN 모델에 통과시켜 감정분류 예측을 합니다.
+    - 임베딩 벡터로 graph를 생성하여 GNN 모델에 통과시켜 감정분류 예측을 합니다.
 
 
 ### 1.2 Methodolgy
+
 #### Model Architecture
 ![model_architecture](./images/)
 
-#### Audio Spectrogram
-![mel-spectrogram](./images/)
-- _mel-spectrogram 설명_
+#### Data Embedding
+![embedding](./images/embedding.png)
+음성, EDA, 온도 데이터를 각각의 인코더를 통해 모달 별 임베딩 벡터를 구하고 다층 신경망을 통하여 각각의 예측값을 구합니다. 또한, 이렇게 얻어진 임베딩 벡터를 하나의 벡터로 합하고, 다층 신경망을 통과하여 새로운 예측값을 구합니다. 이렇게 얻어진 예측값 네 개를 모두 합하여, 손실값을 구합니다.
+###
 
-#### Korean Sentence Embedding[1]
-- 
-
-#### Encoder[2]
-- 
 
 ![]()
 
@@ -46,22 +43,16 @@
 
 ### 1.4 데이터 전처리
 - 우리가 수행한 데이터 전처리 과정을 제시합니다.
-#### 오디오
-우리는 Multimodal dataset을 활용하기위해 함께 첨부된 txt file을 전처리했습니다.
-대화에서 "\c" "\n"과같은 문자부호 특수문자들을 모두 제거하고 KoBert를 활용해 text를 embedding을 모두 출력하고 이 embedding들의 평균을 문장의 embedding으로 인정했습니다.
-또한 충분히 텍스트 정보를 잘 포함하는 embedding dimension을 768로 설정하였습니다.
-이러한 처지의 결과는 <2.2 데이터셋 다운로드>의 구글드라이브 링크에서 ```embedding_768.npy```에서 확인 가능합니다.
+- KEMDy 데이터셋에서 감정 레이블이 있는 시간의 데이터만 가져옵니다. 이후, 감정을 예측하려는 특정 시점이 정해지면 특정 시점에서부터 사용자가 설정한 길이만큼을 앞 뒤에서 자릅니다. 이후 각 시간에 맞는 오디오 데이터, EDA 데이터, 온도 데이터를 가져옵니다.
+#### 음성 데이터
+![mel-spectrogram](./images/mel-spectrogram.png)
+음성 데이터의 경우 mel-spectrogram의 이미지로 가져와서 2D 기반의 ResNet18 인코더를 사용하여 임베딩 벡터를 구합니다.
+#### EDA, 온도 데이터
+EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임베딩 벡터를 구합니다.
 </br>
 
-#### EDA
-오디오를 참조하기 쉽게 한 폴더(```./audio```)에 모았습니다. 각각의 오디오는 고유한 이름을 가지고 있으므로 한 폴더에서 참조해도 문제가 없습니다.
-
-#### TEMP
-20개의 Session에 약 10개씩의 대화상황이 있습니다. 또한 각 Session에 맞는 csv annotation file이 KEMDy19에 기본적으로 포함되어 있습니다.
-우리는 각 대화상황마다 흩어진 annotation들을 하나로 묶은 ```annotation.csv``` file을 만들었습니다. 이것은 아래 <2.2 데이터셋 다운로드>에서 확인하실 수 있습니다.
-각 대화마다 청자 또는 화자의 감정이 label되어있으므로 이것을 speaker와 listener 2개의 csv file(```df_listener.csv```,```df_speaker.csv```)로 나누었습니다. 역시 같은 섹션에서 결과를 확인 가능합니다.
-
-### 1.5 Graph 생성
+### 1.5 GNN
+- 인코더 학습을 통해 얻어낸 특징들을 이용하여 그래프 노드를 생성합니다. 연결을 할 때 관계 정보를 충분히 부여하기 위해 forward, backward, undirect conntection을 추가합니다. 학습한 GNN의 노드를 이용하여 multi-class 분류를 통해 화자의 감정을 예측합니다.
 
 ## 2. How To Use?
 - 이 코드를 사용하는 방법을 다룹니다
@@ -79,181 +70,47 @@
 
 - 최종적으로 structure가 이렇게 되어있다면 모든 준비가 끝났습니다!
 ```
-<2022_ETRI_AI_Competition>
+<multimodal emotion>
                     ├ <data>
-                        └ <KEMDy19>
+                        └ <>
                             ├ <annotation>
-                            ├ <ECG>
-                            ├ <EDA>
-                            ├ <TEMP>
-                            ├ <wav>
-                            ├ annotation.csv
-                            ├ df_listener.csv
-                            ├ df_speaker.csv
-                            └ embedding_768.npy
-                    ├ <audio>    
-                    ├ constants.py
-                    ├ dataset.py
-                    ├ loss.py
-                    ├ main.py
-                    ├ metric.py
-                    ├ model.py
-                    ├ utils.py
-                    ├ EDA.ipynb
-                    ├ prerprocessing.ipynb
+                            ├ 
+                    ├ train_val.py
+                    ├ models_gnn.py
+                    ├ data_loader.py
+                    ├ generate_graph.py
                     ├ LICENSE
                     ├ requirements.txt
                     └ README.md                           
 ```
 
-### 2.3 학습+추론
-‼️ 여러분의 GPU에 따라서 ```gpu_id```(이름이 다르거나 없어서 오류)나 ```batch_size```(memory overflow)을 예시와 다르게 설정해야 할 수도 있습니다. 오류가 뜬다면 아래 "argparser parameter 소개"를 보면서 여러분의 환경에 맞게 조정해주세요.
-
-#### Speaker 감정 추론 baseline
-```
-python main.py --SorL speaker
-               --epochs 100
-```
-
-#### Listener 감정 추론 baseline
-```
-python main.py --SorL listener
-               --epochs 100
-```
-- argparser parameter 소개
-    - gup_id : 사용할 GPU의 id
-    - save_path : 실험결과가 저장될 경로 -> 만지지 마시오
-    - backbone : Backbone network -> 만지지 마시오
-    - text_dim : sentence embedding의 dimension -> 만지지 마시오
-    - bidirectional : 양방향 RNN옵션. Default는 False. True로 만드려면 ```--bidirectional```
-    - ws : sliceing window size -> 만지지 마시오
-    - SorL : 추론할 감정. ```speaker``` 또는 ```listener```
-    - sr : audio의 sampling rate -> 만지지 마시오
-    - test_split : 20개의 session중에서 test split으로 나눌 session. 예시) ```[1,8,9,13]```
-    - batch_size : Batch size ```64```
-    - optim : optimizer. choices=sgd,adam,adagrad
-    - loss : Default는 ```normal```로 MSE와 KLDiv Loss를 사용합니다. ```cbloss```로 설정하면 Class Balanced Loss가 사용됩니다.
-    - lam : Default는 ```0.66```으로 감정을 맞추는 가중치(lam)와 각성도,긍부정도를 맞추는 가중치(1-lam) 사이의 비율을 결정합니다.
-    - beta : Default는 ```0.99```. CBLoss의 가중치 beta를 결정합니다.
-    - lr_decay : lr decay term
-    - lr : learning rate
-    - weight_decay : weight decay term(L2 regularization)
-    - epochs : total training epochs
+### 2.3 그래프 생성
+‼️ 
 
 
+### 2.4 학습
+#### Speaker 감정 학습 baseline
+```
+python train_val.py
+```
 
-### 2.4 추론만 하기
-```
-python main.py --test_only
-               --./exp에있으면서_test할_모델이_있는_폴더_이름
-```
-예를 들어서 ```exp/lstm_speaker_adam_8/model.pth```가 있었고 이 모델을 테스트만 하고싶다면 아래와같이 명령하세요.
-```
-python main.py --test_only
-               --lstm_speaker_adam_8
-```
+
 
 ## 3. 성능
 ### 3.1 기존 성능[3]
 
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| SPSL | 0.608 | - | 0.599 | - | - |
-| MPSL | 0.591 | - | 0.584 | - | - |
-| MPGL | 0.608 | - | 0.598 | - | - |
+| Accuracy | Recall | F1 | Arousal | Valence |
+| --- | --- | --- | --- | --- |
+| 90.477 | - | 0.905 | - | - |
 
-### 3.2 Baseline 성능
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker[1,2,3,4] | 0.687 | 0.663 | 0.674 | 0.771 | 0.845 |
-| Speaker[5,6,7,8] | 0.685 | 0.663 | 0.673 | 0.781 | 0.777 |
-| Speaker[9,10,11,12] | 0.719 | 0.691 | 0.704 | 0.802 | 0.891 |
-| Speaker[13,14,15,16] | 0.748 | 0.719 | 0.733 | 0.745 | 0.860 |
-| Speaker[17,18,19,20] | 0.718 | 0.688 | 0.702 | 0.751 | 0.872 |
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Listener[1,2,3,4] | 0.696 | 0.669 | 0.681 | 0.691 | 0.852 |
-| Listener[5,6,7,8] | 0.671 | 0.651 | 0.661 | 0.767 | 0.816 |
-| Listener[9,10,11,12] | 0.660 | 0.632 | 0.645 | 0.724 | 0.860 |
-| Listener[13,14,15,16] | 0.744 | 0.713 | 0.728 | 0.756 | 0.865 |
-| Listener[17,18,19,20] | 0.710 | 0.683 | 0.695 | 0.566 | 0.866 |
-
-### 3.3 양방향 RNN
-- configuration은 모두 default setting
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker_bi | 0.755 | 0.726 | 0.740 | 0.784 | 0.884 |
-| Listener_bi | 0.741 | 0.710 | 0.725 | 0.711 | 0.880 |
-
-### 3.4 Emotion 정보를 concat한 것이 도움이 되었을까?
-- configuration은 모두 default setting
-- emotion 정보 concat을 모두 제거 후 실험
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker_noCat | 0.719 | 0.690 | 0.704 | 0.751 | 0.827 |
-| Listener_noCat | 0.722 | 0.692 | 0.706 | 0.689 | 0.876 |
-
-### 3.5 CB Loss when ![](http://latex.codecogs.com/gif.latex?\lambda=0.9)
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\beta=0.8)) | 0.716 | 0.686 | 0.700 | 0.755 | 0.796 |
-| Speaker (![](http://latex.codecogs.com/gif.latex?\beta=0.9)) | 0.621 | 0.594 | 0.607 | 0.623 | 0.785 |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\beta=0.99)) | 0.721 | 0.691 | 0.705 | 0.612 | 0.829 |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\beta=0.999)) | 0.670 | 0.643 | 0.656 | 0.730 | 0.869 |
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Linstener(![](http://latex.codecogs.com/gif.latex?\beta=0.8)) | 0.727 | 0.697 | 0.711 | 0.701 | 0.857 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\beta=0.9)) | 0.745 | 0.715 | 0.729 | 0.723 | 0.877 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\beta=0.99))| 0.711 | 0.681 | 0.695 | 0.725 | 0.854 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\beta=0.999)) | 0.698 | 0.669 | 0.682 | 0.741 | 0.868 |
-
-
-### 3.6 ![](http://latex.codecogs.com/gif.latex?\lambda)에 따른 baseline ablation study
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\lambda=0.5))(1:1:1) | 0.738 | 0.709 | 0.722 | 0.780 | 0.824 |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\lambda=0.66))(2:1:1) | 0.748 | 0.719 | 0.733 | 0.745 | 0.860 |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\lambda=0.75))(3:1:1) | 0.759 | 0.731 | 0.744 | 0.791 | 0.869 |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\lambda=0.8))(4:1:1) | 0.696 | 0.670 | 0.682 | 0.783 | 0.803 |
-
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Listener(![](http://latex.codecogs.com/gif.latex?\lambda=0.5))(1:1:1) | 0.712 | 0.683 | 0.696 | 0.746 | 0.880 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\lambda=0.66))(2:1:1) | 0.744 | 0.713 | 0.728 | 0.756 | 0.865 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\lambda=0.75))(3:1:1) | 0.740 | 0.710 | 0.724 | 0.712 | 0.870 |
-| Listener(![](http://latex.codecogs.com/gif.latex?\lambda=0.8))(4:1:1) | 0.709 | 0.680 | 0.694 | 0.688 | 0.862 |
-
-
-### 3.7 최고성능을 5-Folds 검증으로 확인한 최종성능
-| Model | Precision | Recall | F1_emotion | Arousal | Valence |
-| --- | --- | --- | --- | --- | --- |
-| Speaker(![](http://latex.codecogs.com/gif.latex?\lambda=0.75))(3:1:1) | 0.728 | 0.702 | 0.714 | 0.778 | 0.848 |
-| Listener(CBLoss,![](http://latex.codecogs.com/gif.latex?\lambda=0.9),![](http://latex.codecogs.com/gif.latex?\beta=0.9)) | 0.694 | 0.668 | 0.680 | 0.711 | 0.833 |
-
-
-## License & citiation
-### License
-MIT License 하에 공개되었습니다. 모델 및 코드를 사용시 첨부된 ```LICENSE```를 참고하세요.
-### Citiation
-```
-
-```
 
 
 ## Contact
-- Junseok Yoon : 
+- Junseok Yoon : phobyjun@khu.ac.kr
 - Hong-Ju Jeong : sub06038@khu.ac.kr
-- Inhun Choi : 
-
-- Hyeon-Joon Choi : 
-- Junsick Hong:
+- Inhun Choi : inhun321@khu.ac.kr
+- Hyunjun Choi : kikitank1@khu.ac.kr
+- Joonshik Hong : jshong0907@gmail.com
 
 ## Reference
 [1] Patrick, M, et al. "Space-time crop & attend: Improving cross-modal video representation learning." arXiv preprint arXiv:2103.10211 (2021).
