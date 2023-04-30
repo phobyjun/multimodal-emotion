@@ -143,8 +143,8 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
      불러오는 가중치를 변경하기 위해서, config.py 내부의, STE_inputs['model_weights']를 변경해주세요.
      
-<code> python STE_forward <clip_lenght> <device> </code>
-<code> ex) python STE_forward 11 0 </code>
+<code> python STE_forward.py <clip_lenght> <device> </code>
+<code> ex) python STE_forward.py 11 0 </code>
 
 5. 생성된 embedding feature를 pkl 파일로, 세션별로 나눠서 저장해주세요.
 🪄 불러오는 가중치를 변경하기 위해서, 2번째 cell 의 model_weights = './STE_TRAIN/ste_encoder/{}.pth'를 변경해주세요.
