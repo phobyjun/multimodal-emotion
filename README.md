@@ -152,11 +152,11 @@ python train_val.py
 
 
 ## 3. 성능
-### 3.1 기존 성능[3]
+### 3.1 F1 score
 
-| Accuracy | Recall | F1 | Arousal | Valence |
+| Accuracy | Recall | F1 | Arousal | Parameters |
 | --- | --- | --- | --- | --- |
-| 90.477 | - | 0.905 | - | - |
+| 90.477 | - | 0.905 | - | 139365 |
 
 
 
