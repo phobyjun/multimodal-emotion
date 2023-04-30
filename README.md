@@ -191,21 +191,13 @@ python train_val.py
 - Joonshik Hong : jshong0907@gmail.com
 
 ## Reference
-[1] Patrick, M, et al. "Space-time crop & attend: Improving cross-modal video representation learning." arXiv preprint arXiv:2103.10211 (2021).
+[1] Liang, Chen, et al. "S+ page: A speaker and position-aware graph neural network model for emotionrecognition in conversation." arXiv preprint arXiv:2112.12389 (2021).
 </br>
-[2] He, Kaiming, et al. "Deep residual learning for image recognition." Proceedings of the IEEE conference on computer vision and pattern recognition. 2016.
+[2] Zhang, Yifei, et al. "Deep multimodal fusion for semantic image segmentation: A survey." Image and Vision Computing 105 (2021): 104042.
 </br>
-[3] Min, Kyle, et al. "Learning long-term spatial-temporal graphs for active speaker detection." Computer Vision–ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part XXXV. Cham: Springer Nature Switzerland, 2022.
-</br>
-[4] Deng, J.J.; Leung, C.H.C. Towards Learning a Joint Representation from Transformer in Multimodal Emotion Recognition. In Brain Informatics; Mahmud, M., Kaiser, M.S., Vassanelli, S., Dai, Q., Zhong, N., Eds.; Springer: Cham, Switzerland, 2021;
-pp. 179–188.
-</br>
-[5] Georage, Barnum. et al. "On The Benefits of Early Fusion in Multimodal Representation Learning." arXiv preprint arXiv:2011.07171 (2020).
-</br>
-[6] K. Gadzicki, R. Khamsehashari and C. Zetzsche, "Early vs Late Fusion in Multimodal Convolutional Neural Networks," 2020 IEEE 23rd International Conference on Information Fusion (FUSION), Rustenburg, South Africa, 2020, pp. 1-6.
-</br>
-[7] Liang, Chen, et al. "S+ page: A speaker and position-aware graph neural network model for emotion recognition in conversation." arXiv preprint arXiv:2112.12389 (2021).
-</br>
-[8] Poria, Soujanya, et al. "Meld: A multimodal multi-party dataset for emotion recognition in conversations." arXiv preprint arXiv:1810.02508 (2018).
-</br>
-[9] K. J. Noh and H. Jeong, “KEMDy20,” https://nanum.etri.re.kr/share/kjnoh/KEMDy20?lang=ko_KR 
+[3] Min, Kyle, et al. "Learning long-term spatial-temporal graphs for active speaker detection." Computer Vision–ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part XXXV. Cham: Springer Nature Switzerland, 2022.</br>
+[4] Hochreiter, Sepp, and Jürgen Schmidhuber. "Long short-term memory." Neural computation 9.8 (1997): 1735-1780.</br>
+[5] 5 Patrick, M, et al. "Space-time crop & attend: Improving cross-modal video representation learning." arXiv preprint arXiv:2103.10211 (2021).</br>
+[6] 6 Poria, Soujanya, et al. "Meld: A multimodal multi-party dataset for emotion recognition in conversations." arXiv preprint arXiv:1810.02508 (2018).</br>
+[7]Alcázar, Juan León, et al. "Active speakers in context." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.</br>
+[8] He, Kaiming, et al. "Deep residual learning for image recognition." Proceedings of the IEEE conference on computer vision and pattern recognition. 2016</br>
