@@ -61,6 +61,16 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 0. 여러분의 PC나 서버에 GPU가 있고 cuda setting이 되어있어야합니다.
 1. 여러분의 환경에 이 repo를 clone합니다 : ```git clone <this_repo>```
 2. requirements libraries를 확인합니다 : ```pip install -r requirements.txt```
+3. 다음을 수행합니다.
+```
+pip uninstall Pillow
+pip install Pillow-SIMD
+pip install python_speech_features
+pip install natsort
+pip install scipy
+pip install sklearn
+pip install pandas
+```
 
 ### 2.2 데이터셋 다운로드
 1. [KEMDy20](https://nanum.etri.re.kr/share/kjnoh/KEMDy20?lang=ko_KR) dataset을 다운로드하여 ```multimodal-emotion/encoder/KEMDy20``` 폴더에 넣으세요. 다운로드 권한을 신청해야할 수도 있습니다.
