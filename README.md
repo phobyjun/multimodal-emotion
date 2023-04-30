@@ -156,7 +156,7 @@ python train_val.py
 
 | Accuracy | Recall | F1 | Arousal | Parameters |
 | --- | --- | --- | --- | --- |
-| 90.477 | - | 0.905 | - | 139365 |
+| 90.47 | - | 90.48 | - | 139365 |
 
 
 
