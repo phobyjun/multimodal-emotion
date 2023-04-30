@@ -63,9 +63,9 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 2. requirements libraries를 확인합니다 : ```pip install -r requirements.txt```
 
 ### 2.2 데이터셋 다운로드
-1. [KEMDy20](https://nanum.etri.re.kr/share/kjnoh/KEMDy19?lang=ko_KR) dataset을 다운로드하여 'ETRI_2022_AI_Competition/data' 폴더에 넣으세요. 다운로드 권한을 신청해야할 수도 있습니다.
-2. [Google_Drive]()에서 미리 가공된 데이터들을 다운로드하여 'multimodal-emotion/' 폴더에 넣으세요.
-3. [Google_Drive]()에서 ```.zip```을 다운로드하여 압축을 풀어서 로컬인 ```multimodal-emotion/``` 폴더에 넣으세요. 
+1. [KEMDy20](https://nanum.etri.re.kr/share/kjnoh/KEMDy20?lang=ko_KR) dataset을 다운로드하여 ```multimodal-emotion/encoder/KEMDy20``` 폴더에 넣으세요. 다운로드 권한을 신청해야할 수도 있습니다.
+2. [Google_Drive](https://drive.google.com/drive/folders/1gt9GnIN2CQ6RiYIkvErdGKsce2GJ1ECL)에서 ```features.tar```을 다운로드하여 압축을 풀면 ```multimodal-emotion/features```에 그래프를 만들기 위한 임베딩 벡터 파일이 생깁니다.
+3. [Google_Drive](https://drive.google.com/drive/folders/1gt9GnIN2CQ6RiYIkvErdGKsce2GJ1ECL)에서 ```graphs.tar```을 다운로드하여 압축을 풀면 ```multimodal-emotion/graphs```에 학습을 위한 graph 파일들이 생깁니다. 
 
 - 최종적으로 structure가 이렇게 되어있다면 모든 준비가 끝났습니다!
 ```
@@ -102,6 +102,15 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
                     │   ├── ste_encoder_cfg.json
                     │   └── ste_encoder_logs.csv
                     └── STE_train.py
+                    └ <features>
+                    ├── features_train
+                    └── features_val
+                    └ <graphs>
+                    ├── resnet18-tsm-aug_2000_7.2_cin_fsimy # generate_graph.py 기본 argument했을 때 생기는 폴더명
+                    │   ├── train
+                    │   │   ├── processed
+                    │   └──  val
+                    │   │   ├── processed
                     ├ train_val.py
                     ├ models_gnn.py
                     ├ data_loader.py
@@ -112,14 +121,18 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 ```
 
 ### 2.3 encoder 사용법
+0. encoder 디렉토리로 이동해주세요.
+
+<code> cd ./encoder</code>
 1. encoder 내부에, KEMDy20 폴더를 링크시켜주세요.
+
 <code> ln -s .../KEMDy20 .../encoder/KEMDy20 </code>
 
 2. encoder 학습에 필요한, 각종 pkl, csv 파일을 생성해주세요.
 > df_generator.ipynb의 cell을 모두 실행시켜주세요.
 
 3. encoder를 학습시켜주세요.
-🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
+ 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
      기본적으로, encoder의 가중치는 ./STE_TRAIN/ste_encoder/{}.pth에 저장됩니다.
 
 <code> python STE_train <clip_lenght> <device> </code>
@@ -128,9 +141,9 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 4. encoder로 embeddig faeture를 뽑아주세요.
 🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
      불러오는 가중치를 변경하기 위해서, config.py 내부의, STE_inputs['model_weights']를 변경해주세요.
+     
 <code> python STE_forward <clip_lenght> <device> </code>
-
-<code> python STE_forward 11 0 </code>
+<code> ex) python STE_forward 11 0 </code>
 
 5. 생성된 embedding feature를 pkl 파일로, 세션별로 나눠서 저장해주세요.
 🪄 불러오는 가중치를 변경하기 위해서, 2번째 cell 의 model_weights = './STE_TRAIN/ste_encoder/{}.pth'를 변경해주세요.
