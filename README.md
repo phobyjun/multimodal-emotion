@@ -20,15 +20,14 @@
 ### 1.2 Methodolgy
 
 #### Model Architecture
-![model_architecture](./images/)
+![model_architecture](./images/gnn.png)
+참조한 [GNN model architecture](https://github.com/SRA2/SPELL) 입니다. 연결을 할 때 관계 정보를 충분히 부여하기 위해 forward, backward, undirect conntection을 추가하고 3개의 Layer를 통과 후 합친 후 softmax를 통해 7개의 감정 확률분포를 생성합니다.
 
 #### Data Embedding
 ![embedding](./images/embedding.png)
 음성, EDA, 온도 데이터를 각각의 인코더를 통해 모달 별 임베딩 벡터를 구하고 다층 신경망을 통하여 각각의 예측값을 구합니다. 또한, 이렇게 얻어진 임베딩 벡터를 하나의 벡터로 합하고, 다층 신경망을 통과하여 새로운 예측값을 구합니다. 이렇게 얻어진 예측값 네 개를 모두 합하여, 손실값을 구합니다.
 ###
 
-
-![]()
 
 ### 1.3 코드 설명
 
@@ -45,6 +44,7 @@
 - KEMDy 데이터셋에서 감정 레이블이 있는 시간의 데이터만 가져옵니다. 이후, 감정을 예측하려는 특정 시점이 정해지면 특정 시점에서부터 사용자가 설정한 길이만큼을 앞 뒤에서 자릅니다. 이후 각 시간에 맞는 오디오 데이터, EDA 데이터, 온도 데이터를 가져옵니다.
 #### 음성 데이터
 ![mel-spectrogram](./images/mel-spectrogram.png)
+</br>
 음성 데이터의 경우 mel-spectrogram의 이미지로 가져와서 2D 기반의 ResNet18 인코더를 사용하여 임베딩 벡터를 구합니다.
 #### EDA, 온도 데이터
 EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임베딩 벡터를 구합니다.
@@ -70,10 +70,38 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
 - 최종적으로 structure가 이렇게 되어있다면 모든 준비가 끝났습니다!
 ```
 <multimodal emotion>
-                    ├ <data>
-                        └ <>
-                            ├ <annotation>
-                            ├ 
+                    └ <encoder>
+                    ├── core
+                    │   ├── clip_utils.py
+                    │   ├── config.py
+                    │   ├── custom_transforms.py
+                    │   ├── dataset.py
+                    │   ├── dataset _save.py
+                    │   ├── io.py
+                    │   ├── models.py
+                    │   ├── optimization.py
+                    │   ├── __pycache__
+                    │   └── util.py
+                    ├── data
+                    │   ├── C
+                    │   ├── extract_audio_tracks.py
+                    │   ├── extract_face_crops_time.py
+                    │   ├── get_utility_files.sh
+                    │   └── slice_audio_tracks.py
+                    ├── df_generator.ipynb
+                    ├── feats_generator.ipynb
+                    ├── KEMDy20 -> ../KEMDy20 **(link)**
+                    ├── KEMDy20results.csv
+                    ├── README.md
+                    ├── scripts
+                    │   ├── dev_env.sh
+                    │   └── downloads.sh
+                    ├── STE_forward.py
+                    ├── STE_TRAIN
+                    │   ├── ste_encoder
+                    │   ├── ste_encoder_cfg.json
+                    │   └── ste_encoder_logs.csv
+                    └── STE_train.py
                     ├ train_val.py
                     ├ models_gnn.py
                     ├ data_loader.py
@@ -83,11 +111,39 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
                     └ README.md                           
 ```
 
-### 2.3 그래프 생성
-‼️ 
+### 2.3 encoder 사용법
+1. encoder 내부에, KEMDy20 폴더를 링크시켜주세요.
+<code> ln -s .../KEMDy20 .../encoder/KEMDy20 </code>
+
+2. encoder 학습에 필요한, 각종 pkl, csv 파일을 생성해주세요.
+> df_generator.ipynb의 cell을 모두 실행시켜주세요.
+
+3. encoder를 학습시켜주세요.
+🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
+     기본적으로, encoder의 가중치는 ./STE_TRAIN/ste_encoder/{}.pth에 저장됩니다.
+
+<code> python STE_train <clip_lenght> <device> </code>
+<code> ex) python STE_train 11 0 </code>
+
+4. encoder로 embeddig faeture를 뽑아주세요.
+🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
+     불러오는 가중치를 변경하기 위해서, config.py 내부의, STE_inputs['model_weights']를 변경해주세요.
+<code> python STE_forward <clip_lenght> <device> </code>
+
+<code> python STE_forward 11 0 </code>
+
+5. 생성된 embedding feature를 pkl 파일로, 세션별로 나눠서 저장해주세요.
+🪄 불러오는 가중치를 변경하기 위해서, 2번째 cell 의 model_weights = './STE_TRAIN/ste_encoder/{}.pth'를 변경해주세요.
+
+> feats_generator.ipynb의 cell을 모두 실행시켜주세요.
+최종적으로 .../KEMDy20/Session에 session별로 그래프를 생성하기 위한 embedding features가 저장됩니다.
 
 
-### 2.4 학습
+### 2.4 GNN 학습
+#### 그래프 생성
+```
+python generate_graph.py
+```
 #### Speaker 감정 학습 baseline
 ```
 python train_val.py

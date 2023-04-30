@@ -14,10 +14,8 @@ class SPELL(torch.nn.Module):
         self.da_true = da_true
         super(SPELL, self).__init__()
 
-        self.layerspf = nn.Linear(4, proj_dim) # projection layer for spatial features (4 -> 64)
-        # spatial feature는?
-        
-        #self.layer011 = nn.Linear(self.feature_dim//2+proj_dim, self.channels[0])
+        #self.layerspf = nn.Linear(4, proj_dim) # projection layer for spatial features (4 -> 64)
+     
         self.layer011 = nn.Linear(self.feature_dim//3, self.channels[0])
         self.layer012 = nn.Linear(self.feature_dim//3, self.channels[0])
         self.layer013 = nn.Linear(self.feature_dim//3, self.channels[0])
@@ -40,25 +38,17 @@ class SPELL(torch.nn.Module):
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
-        #x = x.view(1,-1) ## 차원 맞추려고
-
-        #spf = x[:, self.feature_dim:self.feature_dim+4] # coordinates for the spatial features (dim: 4)
-        
+     
         edge_index1 = edge_index[:, edge_attr>=0]
         edge_index2 = edge_index[:, edge_attr<=0]
-
-        #x_visual = self.layer011(torch.cat((x[:,self.feature_dim//2:self.feature_dim], self.layerspf(spf)), dim=1))
         
         x_audio = self.layer011(x[:,:self.feature_dim//3])
         x_EDA = self.layer012(x[:,self.feature_dim//3:(self.feature_dim//3)*2])
         
         x_TEMP = self.layer013(x[:,(self.feature_dim//3)*2:self.feature_dim])
         
-        
-        
         x = x_EDA+ x_TEMP + x_audio
     
-
         x = self.batch01(x)
         x = F.relu(x)
 
