@@ -89,27 +89,7 @@ class AVADataset(Dataset):
             ## format of data_f: For any row=i, data_f[i][0]=session_id, data_f[i][1]=time_stamp, data_f[i][2]=entity_id, data_f[i][3]= label, data_f[i][-1]=feature
             #------------
 
-            newData = []
-            for key in data_f.keys():
-                # value의 형식은 {name: [{timestamp: 0000, feature: [1024], label: [10]}, {timestamp: 0001, ...}], ...}
-                values = data_f[key]
-                name = key.split('_')
-                
-                for value in values:
-                    data = []
-                    # name은 Sess01_script01_User002M_001와 같은 형식 ['Sess01', 'script01', 'User002M', '001']
-                    ts = value['ts'].split('-')[-3:]
-                    seconds = float(ts[0])//100*3600 + float(ts[0]) % 100 * 60 + float(ts[1]) + float(ts[2])*0.001
-                    
-                    data.append(name[0])
-                    data.append(seconds)
-                    data.append(name[2])
-                    data.append(value['emotion'])
-                    data.append(value['feature'])
-                    newData.append(data)
-
             # we sort the rows by their time-stamps
-            data_f = newData
             data_f.sort(key = lambda x: float(x[1]))
 
             num_v = self.numv
@@ -209,7 +189,7 @@ class AVADataset(Dataset):
                 x = torch.FloatTensor(np.concatenate(x, axis=0))
                 edge_index = torch.LongTensor([source_vertices, target_vertices])
                 edge_attr = torch.FloatTensor(edge_attr)
-                y = torch.FloatTensor(y).unsqueeze(1)
+                y = torch.FloatTensor(y)
                 #----------------
 
                 ## creates the graph data object that stores (features,edges,labels)

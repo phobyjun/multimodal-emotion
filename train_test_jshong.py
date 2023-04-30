@@ -30,6 +30,15 @@ parser.add_argument('--seed', type=int, default=0, help='random seed for reprodu
 parser.add_argument('--num_epoch', type=int, default=700, help='total number of epochs')
 parser.add_argument('--eval_freq', type=int, default=1, help='how frequently run the evaluation')
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+# count total model parameters including trainable and non-trainable
+# def count_parameters(model):
+#     return sum(p.numel() for p in model.parameters())
+    
+
+
 
 def main():
     args = parser.parse_args()
@@ -47,11 +56,11 @@ def main():
     graph_data['edge_weight'] = args.edge_weight
 
     # path of the audio-visual features
-    dpath_root = os.path.join('/local_datasets/KEMDy20-2/', 'features')
+    dpath_root = os.path.join('/local_datasets/KEMDy20/', 'features')
 
     # path of the generated graphs
     exp_key = '{}_{}_{}_{}_{}'.format(args.feature, graph_data['numv'], graph_data['time_edge'], graph_data['cross_identity'], graph_data['edge_weight'])
-    tpath_root = os.path.join('/local_datasets/KEMDy20-2/graphs', exp_key)
+    tpath_root = os.path.join('/local_datasets/KEMDy20/graphs', exp_key)
 
     # path for the results and model checkpoints
     exp_name = '{}_lr{}-{}_c{}-{}_d{}-{}_s{}'.format(exp_key, args.lr, args.sch_param, args.channel1, args.channel2, args.dropout, args.dropout_a, args.seed)
@@ -81,6 +90,9 @@ def main():
     device = ('cuda:{}'.format(args.gpu_id) if torch.cuda.is_available() else 'cpu')
     model = SPELL([args.channel1, args.channel2], feature_dim, args.dropout, args.dropout_a, args.da_true, proj_dim=args.proj_dim)
     model.to(device)
+    count_parameters_1 = count_parameters(model)
+    
+    print(f'model parameters: {count_parameters_1}')
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = torch.nn.CrossEntropyLoss()
