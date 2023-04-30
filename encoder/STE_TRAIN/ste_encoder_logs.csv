@@ -1,2 +1,0 @@
-epoch;train_loss;train_auc;train_map;val_loss;val_auc;val_map;
-1;0.01079082657886418;0.010128803336324507;
