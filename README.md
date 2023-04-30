@@ -136,8 +136,8 @@ EDA와 온도 데이터는 1D 기반의 ResNet18 인코더를 사용하여 임�
  모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
      기본적으로, encoder의 가중치는 ./STE_TRAIN/ste_encoder/{}.pth에 저장됩니다.
 
-<code> python STE_train <clip_lenght> <device> </code>
-<code> ex) python STE_train 11 0 </code>
+<code> python STE_train.py <clip_lenght> <device> </code>
+<code> ex) python STE_train.py 11 0 </code>
 
 4. encoder로 embeddig faeture를 뽑아주세요.
 🪄 모델 관련 config 설정은 .../encoder/core/config.py에서 변경할 수 있습니다.
