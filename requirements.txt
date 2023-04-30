@@ -3,3 +3,8 @@ scikit-learn==1.2.2
 torch==2.0.0
 torch-geometric==2.3.1
 tqdm==4.65.0
+Pillow-SIMD==9.0.0.post1
+python_speech_features==0.6
+natsort==8.3.1
+scipy==1.10.1
+pandas==2.0.1
