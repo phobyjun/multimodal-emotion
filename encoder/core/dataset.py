@@ -50,7 +50,7 @@ class EDATempDatasetAuxLosses(data.Dataset):
         self.target_entity = list()
 
         for sess in self.entity_list:
-            if int(sess.split('_')[0][-2:]) <= 36:
+            if int(sess.split('_')[0][-2:]) <= 32:
                 self.target_entity.append(sess)
 
         self.all_entity = dict()
